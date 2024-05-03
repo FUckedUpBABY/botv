@@ -1,0 +1,91 @@
+import traceback
+import json
+from pyrogram import Client, filters
+from FUNC.usersdb_func import *
+from datetime import date, timedelta
+
+@Client.on_message(filters.command("plan1", [".", "/"]))
+async def cmd_plan1(Client, message):
+    try:
+        user_id = str(message.from_user.id)
+        admin_ids = json.loads(open("FILES/admin.json", "r").read())["admins"]
+        
+        if user_id not in admin_ids:
+            resp = """<b>Privilege Not Found ⚠️
+
+Message: To perform this action, you need admin level power. 
+
+Contact @stripe_xD for more info ✅</b>"""
+            await message.reply_text(resp, message.id)
+            return
+
+        try:
+            user_id = message.text.split(" ")[1]
+            paymnt_method = "CRYPTO/UPI"
+            registration_check = await getuserinfo(user_id)
+            registration_check = str(registration_check)
+            if registration_check == "None":
+                resp = f"""<b>
+Starter Plan Activation Failed ❌
+━━━━━━━━━━━━━━
+User ID : <a href="tg://user?id={user_id}"> {user_id}</a> 
+Plan Name: Starter Plan For 7 Days 
+Reason : Unregistered Users
+
+Status : Failed
+</b>"""
+                await message.reply_text(resp, message.id)
+                return
+
+            await check_negetive_credits(user_id)
+            await getplan1(user_id)
+            receipt_id = await randgen(len=10)
+            gettoday = str(date.today()).split("-")
+            yy, mm, dd = gettoday[0], gettoday[1], gettoday[2]
+            today = f"{dd}-{mm}-{yy}"
+            getvalidity = str(date.today() + timedelta(days=7)).split("-")
+            yy, mm, dd = getvalidity[0], getvalidity[1], getvalidity[2]
+            validity = f"{dd}-{mm}-{yy}"
+
+            user_resp = f"""<b>
+Thanks For Purchasing Our Starter Plan ✅
+
+ID : <code>{user_id}</code>
+Plan : Starter
+Price : 1.99$
+Purchase Date: {today}
+Expiry : {validity}
+Validity: 7 Days
+Status : Paid ☑️
+Payment Method : {paymnt_method}.
+Receipt ID : Mahico{receipt_id}
+
+This is a receipt for your plan.saved it in a Secure Place.This will help you if anything goes wrong with your plan purchases .
+
+Have a Good Day .
+- @stripe_xD
+    </b>"""
+            try:
+                await Client.send_message(user_id, user_resp)
+            except:
+                pass
+
+            ad_resp = f"""<b>
+Starter Plan Activated ✅ 
+━━━━━━━━━━━━━━
+User ID : <a href="tg://user?id={user_id}"> {user_id}</a> 
+Plan Name: Starter Plan For 7 Days 
+Plan Expiry: {validity} 
+
+Status : Successfull
+            </b>"""
+            await message.reply_text(ad_resp, message.id)
+
+        except Exception as e:
+            await message.reply_text(str(e), message.id)
+            import traceback
+            await error_log(traceback.format_exc())
+
+    except:
+        import traceback
+        await error_log(traceback.format_exc())
