@@ -1,0 +1,102 @@
+import time, random , os
+from pyrogram import Client, filters
+from pathlib import Path
+from FUNC.usersdb_func import *
+import time, threading, asyncio
+from TOOLS.check_all_func import *
+
+
+async def skgen(len=60):
+    try:
+        chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+        return "".join(random.choice(chars) for _ in range(len))
+    except Exception:
+        await error_log(traceback.format_exc())
+
+
+async def sk_key_gen(amt, user_id):
+    try:
+        genned_sks = ""
+        for _ in range(amt):
+            sk = await skgen(len=60)
+            genned_sks += f"sk_live_{sk}\n"
+
+        filename = f"downloads/{amt}x_SK_Genarated_By_{user_id}.txt"
+        with open(filename, "a", encoding="utf-8") as f:
+            f.write(f"{genned_sks}")
+
+        return filename
+
+    except Exception:
+        import traceback
+        await error_log(traceback.format_exc())
+        return "False"
+
+
+@Client.on_message(filters.command("skgen", [".", "/"]))
+def multi(Client, message):
+    t1 = threading.Thread(target=bcall, args=(Client, message))
+    t1.start()
+
+
+def bcall(Client, message):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(thread(Client, message))
+    loop.close()
+
+
+async def thread(Client, message):
+    try:
+        user_id, chat_type, chat_id = (
+            str(message.from_user.id),
+            str(message.chat.type),
+            str(message.chat.id),
+        )
+        checkall = await check_all_thing(Client , message)
+        if checkall[0] == False:
+            return
+
+        role = checkall[1]
+        try:
+            amt = int(message.text.split(" ")[1])
+        except:
+            resp = """<b>
+Wrong Format ❌
+
+Usage:
+<code>/skgen 500</code>
+            </b>"""
+            await message.reply_text(resp, message.id)
+            return
+
+        if amt > 10000:
+            resp = """<b>Limit Reached ⚠️
+
+Message: Maximum Genarated Amount is 10K .</b>"""
+            await message.reply_text(resp, message.id)
+            return
+
+        delete = await message.reply_text("<b>Genarating...</b>", message.id)
+        await asyncio.sleep(0.5)
+        start = time.perf_counter()
+        filename = await sk_key_gen(amt, user_id)
+        end = time.perf_counter()
+        caption = f"""<b>
+SK Genarated ✅
+
+Amount: {amt}
+Genned By <a href="tg://user?id={message.from_user.id}"> {message.from_user.first_name}</a> [ {role} ]
+Time Taken: {int(end - start)}𝘀
+Bot by - <a href="tg://user?id=5371579102">stripe_xD</a></b>"""
+        await Client.delete_messages(message.chat.id, delete.id)
+        await message.reply_document(
+            document=filename,
+            caption=caption,
+            reply_to_message_id=message.id,
+        )
+        os.remove(filename)
+
+    except :
+        import traceback
+        await error_log(traceback.format_exc())

@@ -1,0 +1,26 @@
+import requests
+
+def bin_lookup(bin_number):
+    api_url = f"https://api.binlist.net/{bin_number}"
+    
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+
+        bin_data = response.json()
+        return bin_data
+    except requests.exceptions.RequestException as e:
+        return f"Error: {e}"
+
+# Example usage:
+bin_number = "123456"  # Replace with the actual BIN you want to look up
+result = bin_lookup(bin_number)
+
+if isinstance(result, dict):
+    print("BIN Information:")
+    print(f"Issuer: {result.get('bank', {}).get('name')}")
+    print(f"Country: {result.get('country', {}).get('name')}")
+    # Add more details as needed
+else:
+    print(result)
+    
