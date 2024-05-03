@@ -1,0 +1,115 @@
+import os
+import secrets
+import time
+import random
+from urllib.parse import urlparse, urlencode
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from faker import Faker
+import json
+import asyncio
+from FUNC.defs import *
+from TOOLS.check_all_func import *
+# List of common subdomains
+subdomains = [
+    'www.', 'blog', 'store', 'app', 'support',
+    'forum', 'mail', 'shop', 'news', 'music',
+    'forum1', 'mail1', 'shop1', 'news1', 'music1',
+    'forum2', 'mail2', 'shop2', 'news2', 'music2',
+    'movie', 'movies', 'films', 'songs', 'sing',
+    'cricket', 'football', 'basketball', 'rugby', 'hockey',
+    'talent', 'agency', 'market', 'town', 'city',
+    'ocean', 'smart', 'smartphones', 'clothing', 'medicine',
+    'doctors', 'doctor', 'actors', 'social', 'socialmedia',
+    'events', 'games', 'books', 'library', 'courses',
+    'food', 'recipes', 'travel', 'vacation', 'holiday',
+    'bank', 'finance', 'business', 'tech', 'education',
+    'university', 'hotel', 'restaurant', 'music', 'video',
+    'gallery', 'blog', 'forum', 'reviews', 'forum', 'events',
+    'deals', 'offers', 'coupons', 'health', 'fitness',
+    'science', 'tech', 'gaming', 'gardening', 'pets',
+    # Add more common subdomains here...
+]
+
+# List of common TLDs
+tlds = [
+    '.com', '.co.uk', '.de', '.fr', '.in', '.au', '.ca', '.cn', '.ru', '.br',
+    '.org', '.net', '.gov', '.edu', '.mil', '.us', '.io', '.tech', '.online', '.info',
+    '.store', '.bank', '.media', '.gaming', '.guru', '.club', '.agency', '.agency', '.university', '.hotel',
+    '.shop', '.restaurant', '.gallery', '.blog', '.forum', '.reviews', '.events', '.deals', '.offers',
+    # Add more common TLDs here...
+]
+
+user_last_command_time = {}
+fake = Faker()
+
+async def generate_random_url():
+    random_tld = secrets.choice(tlds)
+    random_subdomain = secrets.choice(subdomains).replace(".", "")  # Remove periods
+    random_domain_words = " ".join(fake.words(nb=random.randint(1, 3)))
+    random_http = 'https://' if random.randint(0, 1) == 1 else 'https://'
+    return f"{random_http}{random_subdomain}{random_domain_words.replace(' ', '')}{random_tld}"
+
+async def validate_url(url):
+    return url  # No further validation is needed
+
+
+
+@Client.on_message(filters.command('genurl'))
+async def generate_url(client, message: Message):
+    try:
+        start_time = time.time()
+        current_time = time.time()
+
+        command = message.text.split()
+        quantity = int(command[1])
+
+        user_id, chat_type, chat_id = (
+            str(message.from_user.id),
+            str(message.chat.type),
+            str(message.chat.id),
+        )
+        user_id = str(message.from_user.id)
+        first_name = str(message.from_user.first_name)
+        checkall = await check_all_thing(Client, message)
+        if not checkall[0]:
+            return
+
+        role = checkall[1]
+        getcc = await getmessage(message)
+        if getcc is False:
+            start_time = time.time()  # Record the start time
+
+            command = message.text.split()
+            quantity = int(command[1])
+            ip_type = command[-1].lower()
+        # Use asyncio.gather for parallel URL generation
+        url_list = await asyncio.gather(*[generate_random_url() for _ in range(quantity)])
+
+        file_name = f'generated_urls_{quantity}.txt'
+        with open(file_name, 'w') as file:
+            for url in url_list:
+                valid_url = await validate_url(url)
+                if valid_url:
+                    file.write(valid_url + '\n')
+
+        end_time = time.time()
+        time_taken = end_time - start_time
+
+        text = f"""<b>
+🍀URLs Generated Successfully🍀
+Quantity<code>{quantity}</code>
+CHECKED BY <a href="tg://user?id={message.from_user.id}"> {message.from_user.first_name}</a>  <code>{role}</code>
+Updates  - <a href="https://t.me/NoMoreBins">三 𝙉𝙤 𝙈𝙤𝙧𝙚 𝘽𝙞𝙣𝙨 三</a>
+OWNER - <a href="https://t.me/stripe_xD">>⏤͟͞🇧🇩⌁𝙒𝙞𝙣𝙩𝙚𝙧𝙜𝙧𝙚𝙚𝙣 𝙈𝙖𝙧𝙨ヤ</a>
+TIME TAKEN: <code>{time_taken:.2f}</code> seconds
+        </b>"""
+
+        await message.reply_document(
+            document=file_name, caption=text
+        )
+
+        os.remove(file_name)
+
+    except Exception as e:
+        await message.reply(f"An error occurred: {str(e)}")
