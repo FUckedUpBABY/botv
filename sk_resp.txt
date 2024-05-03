@@ -1,0 +1,9 @@
+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 {
+  "error": {
+    "code": "platform_api_key_expired",
+    "doc_url": "https://stripe.com/docs/error-codes/platform-api-key-expired",
+    "message": "Expired API Key provided: sk_live_*********************************************************************************************IvwuZg. Platform access may have been revoked.",
+    "type": "invalid_request_error"
+  }
+}
+

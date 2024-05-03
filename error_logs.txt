@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "c:\Users\Administrator\Desktop\mahicofixed\BOT\admin\direct_credit.py", line 10, in cmd_ac
+    OWNER_ID = json.loads(open("FILES/config.json", "r").read())["OWNER_ID"]
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 23, in decode
+    return codecs.charmap_decode(input,self.errors,decoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeDecodeError: 'charmap' codec can't decode byte 0x8f in position 414: character maps to <undefined>
+
+Traceback (most recent call last):
+  File "c:\Users\Administrator\Desktop\mahicofixed\BOT\Charge\SkBased\Stripe 1$ Cvv Charge\cvvtxt.py", line 194, in stripe_mass_txt_auth_cmd
+    a = await asyncio.gather(*a)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\Administrator\Desktop\mahicofixed\BOT\Charge\SkBased\Stripe 1$ Cvv Charge\cvvtxt.py", line 101, in mchktxtfunc
+    getresp   = await skcvv_basedCode(sks,pk,fullcc,session)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\Administrator\Desktop\mahicofixed\BOT\Charge\SkBased\Stripe 1$ Cvv Charge\gate.py", line 236, in skcvv_basedCode
+    id , client_secret= await create_payment_intent(session ,sk)
+    ^^^^^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 2)
+

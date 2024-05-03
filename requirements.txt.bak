@@ -1,0 +1,15 @@
+pyrogram
+tgcrypto
+stripe
+pymongo==4.5.0
+bs4
+pyromod
+httpx
+fake_useragent
+speedtest-cli
+psutil
+httpcore==0.18.0
+pytz
+faker
+socket
+aiohttp
